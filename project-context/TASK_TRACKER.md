@@ -16,4 +16,6 @@
 - [x] FE-005 Streamline Navigation & Minimalist Landing UI
 - [x] FE-006 Impeccable Design System, motion.dev integration, dead UI purge, and micro-interactions
 - [x] FE-007 Raw MongoDB ObjectIds Elimination & Complete Entity Population (Verified)
+- [x] BE-009 Seed robust enterprise dataset with 5 mock personas and 10 employees (Verified)
+- [x] BE-010 State Machine Task Visibility Patch & Personalized PDF Generator (Verified)
 

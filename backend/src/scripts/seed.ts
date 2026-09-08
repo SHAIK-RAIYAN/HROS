@@ -45,45 +45,128 @@ const seedDatabase = async (): Promise<void> => {
 
     const users = await User.insertMany([
       {
-        name: "Project Manager User",
-        email: "pm@terralogic.com",
+        name: "Alice (HR Admin)",
+        email: "alice.hr@terralogic.com",
+        roleId: roleMap["HR"],
+      },
+      {
+        name: "Bob (Engineering Manager)",
+        email: "bob.pm@terralogic.com",
         roleId: roleMap["PROJECT_MANAGER"],
       },
       {
-        name: "Admin Systems User",
-        email: "admin@terralogic.com",
+        name: "Charlie (IT Systems)",
+        email: "charlie.admin@terralogic.com",
         roleId: roleMap["ADMIN_SYSTEMS"],
       },
       {
-        name: "Accounts User",
-        email: "accounts@terralogic.com",
+        name: "Diana (Finance)",
+        email: "diana.accounts@terralogic.com",
         roleId: roleMap["ACCOUNTS"],
       },
       {
-        name: "Personnel User",
-        email: "personnel@terralogic.com",
+        name: "Evan (Facilities)",
+        email: "evan.personnel@terralogic.com",
         roleId: roleMap["PERSONNEL"],
-      },
-      {
-        name: "HR User",
-        email: "hr@terralogic.com",
-        roleId: roleMap["HR"],
       },
     ]);
 
-    const hrUser = users.find((u) => u.email === "hr@terralogic.com") || users[4];
+    const hrUser = users.find((u) => u.email === "alice.hr@terralogic.com") || users[0];
 
-    const employee = await Employee.create({
-      employeeCode: "EMP001",
-      name: "John Doe",
-      email: "john.doe@terralogic.com",
-      designation: "Developer",
-      department: "Engineering",
-      joiningDate: new Date("2023-01-15"),
-      managerName: "Project Manager User",
-    });
+    const employees = await Employee.insertMany([
+      {
+        employeeCode: "EMP001",
+        name: "Sarah Connor",
+        email: "sarah.connor@terralogic.com",
+        designation: "Lead QA Engineer",
+        department: "Engineering",
+        joiningDate: new Date("2022-03-15"),
+        managerName: "Bob (Engineering Manager)",
+      },
+      {
+        employeeCode: "EMP002",
+        name: "Marcus Johnson",
+        email: "marcus.johnson@terralogic.com",
+        designation: "Senior Account Executive",
+        department: "Sales",
+        joiningDate: new Date("2021-06-20"),
+        managerName: "Rachel Vance",
+      },
+      {
+        employeeCode: "EMP003",
+        name: "Priya Patel",
+        email: "priya.patel@terralogic.com",
+        designation: "DevOps Engineer",
+        department: "Platform Engineering",
+        joiningDate: new Date("2023-01-10"),
+        managerName: "Bob (Engineering Manager)",
+      },
+      {
+        employeeCode: "EMP004",
+        name: "David Kim",
+        email: "david.kim@terralogic.com",
+        designation: "Senior Frontend Developer",
+        department: "Product Engineering",
+        joiningDate: new Date("2022-08-01"),
+        managerName: "Bob (Engineering Manager)",
+      },
+      {
+        employeeCode: "EMP005",
+        name: "Elena Rostova",
+        email: "elena.rostova@terralogic.com",
+        designation: "Product Marketing Manager",
+        department: "Marketing",
+        joiningDate: new Date("2021-11-15"),
+        managerName: "Thomas Blake",
+      },
+      {
+        employeeCode: "EMP006",
+        name: "James Wilson",
+        email: "james.wilson@terralogic.com",
+        designation: "Financial Analyst",
+        department: "Finance",
+        joiningDate: new Date("2023-04-12"),
+        managerName: "Diana (Finance)",
+      },
+      {
+        employeeCode: "EMP007",
+        name: "Aisha Khan",
+        email: "aisha.khan@terralogic.com",
+        designation: "HR Business Partner",
+        department: "Human Resources",
+        joiningDate: new Date("2020-09-01"),
+        managerName: "Alice (HR Admin)",
+      },
+      {
+        employeeCode: "EMP008",
+        name: "Carlos Mendez",
+        email: "carlos.mendez@terralogic.com",
+        designation: "Security Operations Specialist",
+        department: "IT Infrastructure",
+        joiningDate: new Date("2022-05-18"),
+        managerName: "Charlie (IT Systems)",
+      },
+      {
+        employeeCode: "EMP009",
+        name: "Grace Hopper",
+        email: "grace.hopper@terralogic.com",
+        designation: "Principal Architect",
+        department: "Engineering",
+        joiningDate: new Date("2019-02-14"),
+        managerName: "Bob (Engineering Manager)",
+      },
+      {
+        employeeCode: "EMP010",
+        name: "Liam O'Connor",
+        email: "liam.oconnor@terralogic.com",
+        designation: "Customer Success Lead",
+        department: "Customer Operations",
+        joiningDate: new Date("2023-07-25"),
+        managerName: "Rachel Vance",
+      },
+    ]);
 
-    await WorkflowTemplate.create({
+    const workflowTemplate = await WorkflowTemplate.create({
       name: "Standard Employee Offboarding",
       code: "EMPLOYEE_OFFBOARDING",
       entityType: "OFFBOARDING",
@@ -258,14 +341,18 @@ const seedDatabase = async (): Promise<void> => {
     console.log("Database seeded successfully");
     console.log(`Roles created: ${roles.length}`);
     console.log(`Users created: ${users.length}`);
-    console.log(`Employee created: ${employee.name} (${employee.employeeCode})`);
-    console.log("Workflow template created: Standard Employee Offboarding");
-  } catch (error) {
-    console.error("Database seeding failed:", error);
-    process.exit(1);
-  } finally {
+    console.log(`Employees created: ${employees.length}`);
+    console.log(`Workflow template created: ${workflowTemplate.name}`);
+
     await mongoose.disconnect();
     console.log("Disconnected from MongoDB");
+    process.exit(0);
+  } catch (error) {
+    console.error("Database seeding failed:", error);
+    try {
+      await mongoose.disconnect();
+    } catch {}
+    process.exit(1);
   }
 };
 

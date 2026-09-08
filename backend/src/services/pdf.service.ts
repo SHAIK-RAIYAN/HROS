@@ -1,6 +1,7 @@
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import fs from "fs";
 import path from "path";
+import dayjs from "dayjs";
 
 const uploadsDir = path.join(process.cwd(), "uploads", "documents");
 if (!fs.existsSync(uploadsDir)) {
@@ -15,8 +16,7 @@ export interface GeneratedDocumentsResult {
 
 const formatDate = (dateInput: Date | string): string => {
   try {
-    const d = new Date(dateInput);
-    return isNaN(d.getTime()) ? String(dateInput) : d.toISOString().split("T")[0];
+    return dayjs(dateInput).format("MMMM D, YYYY");
   } catch {
     return String(dateInput);
   }
@@ -51,6 +51,7 @@ const createResignationLetter = async (
 
   const formattedResDate = formatDate(resignationDate);
   const formattedLwd = formatDate(lastWorkingDay);
+  const currentDate = dayjs().format("MMMM D, YYYY");
 
   page.drawText(`Reference Case: ${caseNumber}`, {
     x: 50,
@@ -60,7 +61,7 @@ const createResignationLetter = async (
     color: rgb(0.2, 0.2, 0.2),
   });
 
-  page.drawText(`Date: ${new Date().toISOString().split("T")[0]}`, {
+  page.drawText(`Date: ${currentDate}`, {
     x: 50,
     y: 690,
     size: 10,
@@ -75,18 +76,17 @@ const createResignationLetter = async (
     lineHeight: 16,
   });
 
-  page.drawText("Dear " + employeeName + ",", {
+  page.drawText(`Dear ${employeeName},`, {
     x: 50,
     y: 600,
     size: 10,
-    font: regularFont,
+    font: boldFont,
   });
 
   const bodyText = [
-    `This letter formally acknowledges receipt and acceptance of your formal resignation`,
-    `submitted on ${formattedResDate}.`,
-    "",
-    `As mutually agreed upon, your final working day with Terralogic will be ${formattedLwd}.`,
+    `This letter formally acknowledges receipt and acceptance of your formal resignation submitted`,
+    `on ${formattedResDate}. As mutually agreed upon, your final working day with Terralogic Inc. will be`,
+    `${formattedLwd}.`,
     "",
     "We request that you ensure all project responsibilities, knowledge transfer sessions,",
     "and company assets (IT hardware, access cards) are properly returned through the",
@@ -162,6 +162,7 @@ const createNocCertificate = async (
   });
 
   const formattedLwd = formatDate(lastWorkingDay);
+  const currentDate = dayjs().format("MMMM D, YYYY");
 
   page.drawText(`Certificate ID: NOC-${caseNumber}`, {
     x: 50,
@@ -170,33 +171,33 @@ const createNocCertificate = async (
     font: boldFont,
   });
 
-  page.drawText(`Issue Date: ${new Date().toISOString().split("T")[0]}`, {
+  page.drawText(`Issue Date: ${currentDate}`, {
     x: 50,
     y: 690,
     size: 10,
     font: regularFont,
   });
 
-  page.drawText("TO WHOMSOEVER IT MAY CONCERN", {
-    x: 180,
+  page.drawText(`CLEARANCE CERTIFICATE FOR ${employeeName.toUpperCase()}`, {
+    x: 50,
     y: 640,
-    size: 12,
+    size: 11,
     font: boldFont,
     color: rgb(0.1, 0.1, 0.1),
   });
 
   const lines = [
     `This is to certify that ${employeeName} has completed all departmental clearance`,
-    `protocols with Terralogic as of ${formattedLwd}.`,
+    `protocols with Terralogic Inc. as of ${formattedLwd}.`,
     "",
     "Departmental Clearance Verification Record:",
-    " [X] Project & Reporting Manager : Knowledge transfer & project handover verified",
-    " [X] Admin & Systems             : IT hardware returned & system accesses revoked",
-    " [X] Accounts Department         : Advances, staff loans, and dues cleared",
-    " [X] Personnel                   : Access cards and physical IDs collected",
-    " [X] Human Resources             : Final clearance certified and documented",
+    " [✓] Project & Reporting Manager : Knowledge transfer & project handover verified",
+    " [✓] Admin & Systems             : IT hardware returned & system accesses revoked",
+    " [✓] Accounts Department         : Advances, staff loans, and dues cleared",
+    " [✓] Personnel                   : Access cards and physical IDs collected",
+    " [✓] Human Resources             : Final clearance certified and documented",
     "",
-    "Terralogic confirms there are no pending claims, obligations, or dues outstanding",
+    "Terralogic Inc. confirms there are no pending claims, obligations, or dues outstanding",
     "against the aforementioned employee.",
     "",
     "Authorized Signatory,",
@@ -242,7 +243,8 @@ const createRelievingLetter = async (
   employeeName: string,
   resignationDate: Date | string,
   lastWorkingDay: Date | string,
-  caseNumber: string
+  caseNumber: string,
+  designation?: string
 ): Promise<string> => {
   const pdfDoc = await PDFDocument.create();
   const page = pdfDoc.addPage([595, 842]);
@@ -266,6 +268,7 @@ const createRelievingLetter = async (
   });
 
   const formattedLwd = formatDate(lastWorkingDay);
+  const currentDate = dayjs().format("MMMM D, YYYY");
 
   page.drawText(`Letter Ref: EXP-${caseNumber}`, {
     x: 50,
@@ -274,23 +277,26 @@ const createRelievingLetter = async (
     font: boldFont,
   });
 
-  page.drawText(`Date: ${new Date().toISOString().split("T")[0]}`, {
+  page.drawText(`Date: ${currentDate}`, {
     x: 50,
     y: 690,
     size: 10,
     font: regularFont,
   });
 
-  page.drawText("TO WHOM IT MAY CONCERN", {
-    x: 200,
+  page.drawText(`RELIEVING LETTER FOR ${employeeName.toUpperCase()}`, {
+    x: 50,
     y: 640,
-    size: 12,
+    size: 11,
     font: boldFont,
+    color: rgb(0.1, 0.1, 0.1),
   });
 
+  const designationText = designation ? ` as ${designation}` : "";
+
   const lines = [
-    `This is to certify that ${employeeName} was employed with Terralogic Inc.`,
-    `and has been relieved of all employment duties effective ${formattedLwd}.`,
+    `This is to certify that ${employeeName} was employed with Terralogic Inc.${designationText}`,
+    `and has been formally relieved of all employment duties effective ${formattedLwd}.`,
     "",
     "During their tenure with us, their conduct and performance were found to be sincere,",
     "professional, and dedicated to achieving team goals.",
@@ -344,12 +350,13 @@ export const generateOffboardingDocuments = async (
   employeeName: string,
   resignationDate: Date | string,
   lastWorkingDay: Date | string,
-  caseNumber: string
+  caseNumber: string,
+  designation?: string
 ): Promise<GeneratedDocumentsResult> => {
   const [resignationAcceptance, noc, experienceRelieving] = await Promise.all([
     createResignationLetter(employeeName, resignationDate, lastWorkingDay, caseNumber),
     createNocCertificate(employeeName, resignationDate, lastWorkingDay, caseNumber),
-    createRelievingLetter(employeeName, resignationDate, lastWorkingDay, caseNumber),
+    createRelievingLetter(employeeName, resignationDate, lastWorkingDay, caseNumber, designation),
   ]);
 
   return {

@@ -1,29 +1,29 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
-import Link from "next/link";
-import dayjs from "dayjs";
-import api from "@/lib/api";
-import { Button } from "@/components/ui/button";
+import FadeIn from "@/components/FadeIn";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import api from "@/lib/api";
+import dayjs from "dayjs";
 import {
-  ArrowLeft,
-  RefreshCw,
-  FileText,
-  Download,
-  CheckCircle2,
-  Clock,
-  XCircle,
   AlertCircle,
-  ShieldCheck,
-  History,
+  ArrowLeft,
+  CheckCircle2,
   CheckSquare,
+  Clock,
+  Download,
   FileCheck,
+  FileText,
+  History,
+  RefreshCw,
+  ShieldCheck,
+  XCircle,
 } from "lucide-react";
-import FadeIn from "@/components/FadeIn";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 const BACKEND_URL =
   process.env.NEXT_PUBLIC_API_URL?.replace("/api", "") || "http://localhost:5000";
@@ -541,7 +541,7 @@ export default function CaseDetailPage() {
                     </div>
                   </div>
 
-                  {stage.accessRevocation && stage.accessRevocation.length > 0 && (
+                  {/* {stage.accessRevocation && stage.accessRevocation.length > 0 && (
                     <div className="space-y-1.5 pt-2 border-t border-slate-100">
                       <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Access Revocations</span>
                       <div className="space-y-1">
@@ -555,7 +555,7 @@ export default function CaseDetailPage() {
                         ))}
                       </div>
                     </div>
-                  )}
+                  )} */}
 
                   {stage.remarks && (
                     <div className="pt-2 border-t border-slate-100">

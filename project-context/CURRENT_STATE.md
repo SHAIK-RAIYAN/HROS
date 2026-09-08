@@ -32,8 +32,26 @@ Frontend UI elevated to Impeccable B2B Enterprise standard with motion.dev and d
   - Frontend `/hr/dashboard`: 'Case ID' column renders `case.caseNumber`, and 'Employee' renders `case.employeeSnapshot.name`.
   - Frontend `/tasks`: Displays `task.offboardingCaseId.employeeSnapshot.name`, `task.offboardingCaseId.caseNumber`, and mapped human-readable stage names and role labels.
   - Frontend `/hr/cases/[id]`: Renders populated employee snapshot, case number, and actor names in audit log timeline with fallback to `"System"`.
+- Enterprise Dataset & Realistic Persona Seeder (BE-009):
+  - Rewrote `/backend/src/scripts/seed.ts` with teardown for all 7 collections.
+  - Seeded 5 core Roles: `PROJECT_MANAGER`, `ADMIN_SYSTEMS`, `ACCOUNTS`, `PERSONNEL`, `HR`.
+  - Seeded 5 descriptive Persona Users: "Alice (HR Admin)", "Bob (Engineering Manager)", "Charlie (IT Systems)", "Diana (Finance)", "Evan (Facilities)".
+  - Seeded 10 realistic Employees across diverse departments (Engineering, Platform, Sales, Marketing, HR, Finance, IT Infrastructure, Customer Operations).
+  - Seeded "Standard Employee Offboarding" `WorkflowTemplate` with sequential & parallel clearance stages.
+  - Executed `npm run seed` successfully with clean disconnection.
+- State Machine Visibility Patch & Dynamic PDF Personalization (BE-010):
+  - In `/backend/src/controllers/task.controller.ts`:
+    - Replaced `getPendingTasks` with bulletproof in-memory state filtering (`validTasks = tasks.filter(task => task.offboardingCaseId && task.offboardingCaseId.status !== 'REJECTED' && task.offboardingCaseId.status !== 'CANCELLED')`), ensuring uncorrupted population structures.
+    - Passed employee designation to `generateOffboardingDocuments`.
+  - In `/backend/src/services/pdf.service.ts`:
+    - Removed all "TO WHOM IT MAY CONCERN" / "TO WHOMSOEVER IT MAY CONCERN" salutations.
+    - Formatted dates with `dayjs(date).format('MMMM D, YYYY')`.
+    - Resignation Letter: Personalized greeting `Dear ${employeeName},` with explicit resignation and last working dates.
+    - NOC Certificate: Sub-header `CLEARANCE CERTIFICATE FOR ${employeeName.toUpperCase()}`.
+    - Relieving Letter: Sub-header `RELIEVING LETTER FOR ${employeeName.toUpperCase()}` with name, designation, and tenure end date.
 - Verification:
   - `npm run build` cleanly passed in both `/backend` and `/frontend`.
+  - `npm run seed` verified with 5 roles, 5 users, 10 employees, 1 workflow template.
   - Zero comments rule verified across all source files.
 
 

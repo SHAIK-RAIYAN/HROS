@@ -19,21 +19,27 @@ export const getPendingTasks = async (
   try {
     const roleId = new mongoose.Types.ObjectId(req.user!.roleId);
 
-    const stages = await WorkflowStage.find({
+    const tasks = await WorkflowStage.find({
       roleId,
       status: { $in: ["ACTIVE", "PENDING"] },
     })
-      .populate({
-        path: "offboardingCaseId",
-        select: "caseNumber employeeSnapshot lastWorkingDay status",
-      })
+      .populate("offboardingCaseId", "caseNumber employeeSnapshot lastWorkingDay status")
       .populate("roleId", "name code")
       .populate("assignedUserId", "name")
       .sort({ sequence: 1, createdAt: -1 });
 
+    const validTasks = tasks.filter((task) => {
+      const offboardingCase = task.offboardingCaseId as any;
+      return (
+        offboardingCase &&
+        offboardingCase.status !== "REJECTED" &&
+        offboardingCase.status !== "CANCELLED"
+      );
+    });
+
     res.status(200).json({
       success: true,
-      data: stages,
+      data: validTasks,
     });
   } catch (error: any) {
     res.status(500).json({
@@ -241,12 +247,15 @@ export const completeTask = async (
         } else {
           const employeeName =
             offboardingCase.employeeSnapshot?.name || "Employee";
+          const employeeDesignation =
+            offboardingCase.employeeSnapshot?.designation;
 
           const documentUrls = await generateOffboardingDocuments(
             employeeName,
             offboardingCase.resignationDate,
             offboardingCase.lastWorkingDay,
-            offboardingCase.caseNumber
+            offboardingCase.caseNumber,
+            employeeDesignation
           );
 
           offboardingCase.documentUrls = documentUrls;

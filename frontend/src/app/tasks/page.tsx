@@ -1,27 +1,26 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import dayjs from "dayjs";
-import { AnimatePresence, motion } from "framer-motion";
-import { useAuth } from "@/context/AuthContext";
-import api from "@/lib/api";
-import { toast } from "@/components/ui/toast";
-import { Button } from "@/components/ui/button";
+import FadeIn from "@/components/FadeIn";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { toast } from "@/components/ui/toast";
+import { useAuth } from "@/context/AuthContext";
+import api from "@/lib/api";
+import dayjs from "dayjs";
+import { AnimatePresence, motion } from "framer-motion";
 import {
-  FileText,
-  CheckCircle2,
-  XCircle,
-  Clock,
-  RefreshCw,
   AlertCircle,
+  CheckCircle2,
+  FileText,
   Loader2,
+  RefreshCw,
+  XCircle
 } from "lucide-react";
-import FadeIn from "@/components/FadeIn";
+import { useEffect, useState } from "react";
 
 interface ChecklistItem {
   itemId: string;
@@ -461,7 +460,7 @@ export default function DepartmentTasksPage() {
                       </div>
                     </div>
 
-                    {selectedTask.accessRevocation && selectedTask.accessRevocation.length > 0 && (
+                    {/* {selectedTask.accessRevocation && selectedTask.accessRevocation.length > 0 && (
                       <div className="space-y-2 pt-2 border-t border-slate-100">
                         <Label className="text-xs font-bold uppercase tracking-wider text-slate-700">
                           Access Revocation Action List
@@ -485,7 +484,7 @@ export default function DepartmentTasksPage() {
                           ))}
                         </div>
                       </div>
-                    )}
+                    )} */}
 
                     <div className="space-y-1.5 pt-2 border-t border-slate-100">
                       <Label htmlFor="remarks" className="text-xs font-bold uppercase tracking-wider text-slate-700">
