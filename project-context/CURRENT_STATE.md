@@ -57,6 +57,9 @@ Frontend UI elevated to Impeccable B2B Enterprise standard with motion.dev and d
   - Hardened CORS in `/backend/src/server.ts` to dynamically allow requests from `process.env.FRONTEND_URL`, `https://offboarding.raiyan.app`, and `http://localhost:3000` with credentials and allowed headers (`Content-Type`, `Authorization`, `x-user-id`, `x-role-id`).
   - Created `/frontend/.env.example` defining `NEXT_PUBLIC_API_URL=https://terra-bang-hack.onrender.com/api`.
   - Wired `/frontend/src/lib/api.ts` to dynamically target `process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"`.
+- Global Footer Component (FE-008):
+  - Created `/frontend/src/components/Footer.tsx` with responsive layout and external developer link to `https://shaikraiyan.me/`.
+  - Integrated `Footer` in `/frontend/src/app/layout.tsx` across all application screens.
 - Verification:
   - `npm run build` cleanly passed in `/backend` (`tsc`: 0 errors).
   - `npm run build` cleanly passed in `/frontend` (`next build`: 0 errors).
