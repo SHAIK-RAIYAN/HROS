@@ -191,8 +191,8 @@ export const initiateOffboarding = async (
 export const getCases = async (req: Request, res: Response): Promise<void> => {
   try {
     const cases = await OffboardingCase.find()
-      .populate("employeeId")
-      .populate("initiatedBy", "name email")
+      .populate("employeeId", "name employeeCode department")
+      .populate("initiatedBy", "name")
       .sort({ createdAt: -1 });
 
     res.status(200).json({
@@ -220,7 +220,7 @@ export const getCaseById = async (
     }
 
     const offboardingCase = await OffboardingCase.findById(id)
-      .populate("employeeId")
+      .populate("employeeId", "name employeeCode department designation email managerName joiningDate")
       .populate("initiatedBy", "name email");
 
     if (!offboardingCase) {

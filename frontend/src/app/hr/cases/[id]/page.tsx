@@ -8,7 +8,6 @@ import api from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   ArrowLeft,
@@ -20,13 +19,11 @@ import {
   XCircle,
   AlertCircle,
   ShieldCheck,
-  Building,
-  User,
-  ExternalLink,
   History,
   CheckSquare,
   FileCheck,
 } from "lucide-react";
+import FadeIn from "@/components/FadeIn";
 
 const BACKEND_URL =
   process.env.NEXT_PUBLIC_API_URL?.replace("/api", "") || "http://localhost:5000";
@@ -174,7 +171,7 @@ export default function CaseDetailPage() {
         return (
           <span className="inline-flex items-center gap-1 rounded px-2.5 py-1 text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200">
             <Clock className="h-3.5 w-3.5" />
-            IN PROGRESS
+            IN_PROGRESS
           </span>
         );
       case "REJECTED":
@@ -187,7 +184,7 @@ export default function CaseDetailPage() {
       case "INITIATED":
       default:
         return (
-          <span className="inline-flex items-center gap-1 rounded px-2.5 py-1 text-xs font-semibold bg-slate-100 text-slate-800 border border-slate-200">
+          <span className="inline-flex items-center gap-1 rounded px-2.5 py-1 text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200">
             INITIATED
           </span>
         );
@@ -205,9 +202,9 @@ export default function CaseDetailPage() {
         );
       case "ACTIVE":
         return (
-          <span className="inline-flex items-center gap-1 rounded px-2 py-0.5 text-[11px] font-semibold bg-blue-100 text-blue-800 border border-blue-200">
-            <Clock className="h-3 w-3 animate-pulse" />
-            Action Required
+          <span className="inline-flex items-center gap-1 rounded px-2 py-0.5 text-[11px] font-semibold bg-amber-100 text-amber-800 border border-amber-200">
+            <Clock className="h-3 w-3" />
+            Active
           </span>
         );
       case "REJECTED":
@@ -220,7 +217,7 @@ export default function CaseDetailPage() {
       case "PENDING":
       default:
         return (
-          <span className="inline-flex items-center gap-1 rounded px-2 py-0.5 text-[11px] font-medium bg-slate-100 text-slate-600 border border-slate-200">
+          <span className="inline-flex items-center gap-1 rounded px-2 py-0.5 text-[11px] font-medium bg-slate-100 text-slate-700 border border-slate-200">
             Pending
           </span>
         );
@@ -240,7 +237,7 @@ export default function CaseDetailPage() {
     return (
       <div className="space-y-4 max-w-4xl mx-auto py-8">
         <Link href="/hr/dashboard">
-          <Button variant="ghost" size="sm" className="text-xs">
+          <Button variant="ghost" size="sm" className="text-xs border-slate-200 hover:bg-slate-50">
             <ArrowLeft className="h-3.5 w-3.5 mr-1" />
             Back to Dashboard
           </Button>
@@ -258,7 +255,6 @@ export default function CaseDetailPage() {
   const empCode = c.employeeSnapshot?.employeeCode || c.employeeId?.employeeCode || "—";
   const empDept = c.employeeSnapshot?.department || c.employeeId?.department || "—";
   const empDesig = c.employeeSnapshot?.designation || c.employeeId?.designation || "—";
-  const empEmail = c.employeeSnapshot?.email || c.employeeId?.email || "—";
   const managerName = c.employeeSnapshot?.managerName || c.employeeId?.managerName || "—";
 
   const isCompleted = c.status === "COMPLETED";
@@ -268,7 +264,7 @@ export default function CaseDetailPage() {
   const seq3Stages = stages.filter((s) => s.sequence === 3);
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto">
+    <FadeIn className="space-y-6 max-w-6xl mx-auto">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
         <div className="space-y-1">
           <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
@@ -296,7 +292,7 @@ export default function CaseDetailPage() {
             size="sm"
             onClick={fetchCaseDetails}
             disabled={isLoading}
-            className="text-xs h-9"
+            className="text-xs h-9 border-slate-200 text-slate-700 hover:bg-slate-50"
           >
             <RefreshCw className={`h-3.5 w-3.5 mr-1.5 ${isLoading ? "animate-spin" : ""}`} />
             Refresh State
@@ -332,7 +328,7 @@ export default function CaseDetailPage() {
       </div>
 
       {isCompleted && c.documentUrls && (
-        <Card className="border-emerald-200 bg-emerald-50/50 shadow-none">
+        <Card className="border-emerald-200 bg-emerald-50/40 shadow-none">
           <CardHeader className="py-3 px-5 border-b border-emerald-100 flex flex-row items-center justify-between">
             <div className="flex items-center gap-2">
               <CheckCircle2 className="h-5 w-5 text-emerald-600" />
@@ -345,14 +341,14 @@ export default function CaseDetailPage() {
                 </CardDescription>
               </div>
             </div>
-            <Badge variant="outline" className="border-emerald-300 bg-emerald-100 text-emerald-900 text-xs font-semibold">
+            <Badge variant="outline" className="border-emerald-200 bg-emerald-100 text-emerald-800 text-xs font-semibold">
               Certified Complete
             </Badge>
           </CardHeader>
           <CardContent className="p-5">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {c.documentUrls.resignationAcceptance && (
-                <div className="p-3.5 rounded-lg border border-emerald-200 bg-white flex flex-col justify-between gap-3">
+                <div className="p-3.5 rounded-lg border border-slate-200 bg-white flex flex-col justify-between gap-3">
                   <div className="flex items-start gap-2.5">
                     <FileText className="h-5 w-5 text-slate-700 shrink-0 mt-0.5" />
                     <div>
@@ -366,7 +362,7 @@ export default function CaseDetailPage() {
                     rel="noopener noreferrer"
                     className="w-full"
                   >
-                    <Button variant="outline" size="sm" className="w-full text-xs h-8 gap-1.5 border-slate-300">
+                    <Button variant="outline" size="sm" className="w-full text-xs h-8 gap-1.5 border-slate-200 text-slate-700 hover:bg-slate-50">
                       <Download className="h-3.5 w-3.5 text-slate-600" />
                       Download PDF
                     </Button>
@@ -375,9 +371,9 @@ export default function CaseDetailPage() {
               )}
 
               {c.documentUrls.noc && (
-                <div className="p-3.5 rounded-lg border border-emerald-200 bg-white flex flex-col justify-between gap-3">
+                <div className="p-3.5 rounded-lg border border-slate-200 bg-white flex flex-col justify-between gap-3">
                   <div className="flex items-start gap-2.5">
-                    <ShieldCheck className="h-5 w-5 text-emerald-700 shrink-0 mt-0.5" />
+                    <ShieldCheck className="h-5 w-5 text-slate-700 shrink-0 mt-0.5" />
                     <div>
                       <div className="font-semibold text-xs text-slate-900">NOC & Clearance Record</div>
                       <div className="text-[11px] text-slate-500">5-department signed certificate</div>
@@ -389,7 +385,7 @@ export default function CaseDetailPage() {
                     rel="noopener noreferrer"
                     className="w-full"
                   >
-                    <Button variant="outline" size="sm" className="w-full text-xs h-8 gap-1.5 border-slate-300">
+                    <Button variant="outline" size="sm" className="w-full text-xs h-8 gap-1.5 border-slate-200 text-slate-700 hover:bg-slate-50">
                       <Download className="h-3.5 w-3.5 text-slate-600" />
                       Download PDF
                     </Button>
@@ -398,9 +394,9 @@ export default function CaseDetailPage() {
               )}
 
               {c.documentUrls.experienceRelieving && (
-                <div className="p-3.5 rounded-lg border border-emerald-200 bg-white flex flex-col justify-between gap-3">
+                <div className="p-3.5 rounded-lg border border-slate-200 bg-white flex flex-col justify-between gap-3">
                   <div className="flex items-start gap-2.5">
-                    <FileCheck className="h-5 w-5 text-indigo-700 shrink-0 mt-0.5" />
+                    <FileCheck className="h-5 w-5 text-slate-700 shrink-0 mt-0.5" />
                     <div>
                       <div className="font-semibold text-xs text-slate-900">Experience & Relieving</div>
                       <div className="text-[11px] text-slate-500">Official release certification</div>
@@ -412,7 +408,7 @@ export default function CaseDetailPage() {
                     rel="noopener noreferrer"
                     className="w-full"
                   >
-                    <Button variant="outline" size="sm" className="w-full text-xs h-8 gap-1.5 border-slate-300">
+                    <Button variant="outline" size="sm" className="w-full text-xs h-8 gap-1.5 border-slate-200 text-slate-700 hover:bg-slate-50">
                       <Download className="h-3.5 w-3.5 text-slate-600" />
                       Download PDF
                     </Button>
@@ -424,7 +420,7 @@ export default function CaseDetailPage() {
         </Card>
       )}
 
-      <Card className="border-slate-200 shadow-none">
+      <Card className="border-slate-200 bg-white shadow-none">
         <CardHeader className="py-3 px-5 border-b border-slate-100">
           <CardTitle className="text-xs font-bold uppercase tracking-wider text-slate-700">
             Clearance Workflow Progression
@@ -443,7 +439,7 @@ export default function CaseDetailPage() {
                     <span className="font-medium text-xs text-slate-900">{stage.stageName}</span>
                     {getStageStatusBadge(stage.status)}
                   </div>
-                  {stage.completedBy && (
+                  {stage.completedBy?.name && (
                     <div className="text-[10px] text-slate-500">
                       By {stage.completedBy.name} • {dayjs(stage.completedAt).format("MMM DD, HH:mm")}
                     </div>
@@ -464,7 +460,7 @@ export default function CaseDetailPage() {
                       <span className="font-medium text-xs text-slate-900">{stage.stageName}</span>
                       {getStageStatusBadge(stage.status)}
                     </div>
-                    {stage.completedBy && (
+                    {stage.completedBy?.name && (
                       <div className="text-[10px] text-slate-500">
                         By {stage.completedBy.name} • {dayjs(stage.completedAt).format("MMM DD, HH:mm")}
                       </div>
@@ -485,7 +481,7 @@ export default function CaseDetailPage() {
                     <span className="font-medium text-xs text-slate-900">{stage.stageName}</span>
                     {getStageStatusBadge(stage.status)}
                   </div>
-                  {stage.completedBy && (
+                  {stage.completedBy?.name && (
                     <div className="text-[10px] text-slate-500">
                       By {stage.completedBy.name} • {dayjs(stage.completedAt).format("MMM DD, HH:mm")}
                     </div>
@@ -512,7 +508,7 @@ export default function CaseDetailPage() {
         <TabsContent value="stages" className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {stages.map((stage) => (
-              <Card key={stage._id} className="border-slate-200 shadow-none">
+              <Card key={stage._id} className="border-slate-200 bg-white shadow-none">
                 <CardHeader className="py-3 px-4 border-b border-slate-100 bg-slate-50/70 flex flex-row items-center justify-between">
                   <div className="space-y-0.5">
                     <div className="flex items-center gap-2">
@@ -532,7 +528,7 @@ export default function CaseDetailPage() {
                           key={item.itemId}
                           className="flex items-center justify-between p-2 rounded border border-slate-100 bg-slate-50/50 text-xs"
                         >
-                          <span className={item.completed ? "text-slate-900" : "text-slate-600"}>
+                          <span className={item.completed ? "text-slate-900 font-medium" : "text-slate-600"}>
                             {item.label}
                           </span>
                           {item.completed ? (
@@ -552,7 +548,7 @@ export default function CaseDetailPage() {
                         {stage.accessRevocation.map((acc, idx) => (
                           <div key={idx} className="flex items-center justify-between p-1.5 rounded bg-slate-100 text-[11px]">
                             <span className="font-semibold text-slate-800">{acc.system}: {acc.accessIdentifier}</span>
-                            <Badge variant="outline" className="text-[10px] bg-white">
+                            <Badge variant="outline" className="text-[10px] bg-white border-slate-200 text-slate-700">
                               {acc.action} • {acc.status}
                             </Badge>
                           </div>
@@ -576,7 +572,7 @@ export default function CaseDetailPage() {
         </TabsContent>
 
         <TabsContent value="audit">
-          <Card className="border-slate-200 shadow-none">
+          <Card className="border-slate-200 bg-white shadow-none">
             <CardHeader className="py-3 px-5 border-b border-slate-100">
               <CardTitle className="text-xs font-bold uppercase tracking-wider text-slate-700">
                 Chronological Audit History
@@ -588,9 +584,9 @@ export default function CaseDetailPage() {
                   const actorName =
                     log.performedBy?.name ||
                     log.performedBy?.userId?.name ||
-                    "System Engine";
-                  const roleName =
-                    log.performedBy?.roleId?.name || "BlazeUp HROS";
+                    log.performedBy?.roleId?.name ||
+                    "System";
+                  const roleName = log.performedBy?.roleId?.name;
 
                   return (
                     <div key={log._id} className="p-3.5 hover:bg-slate-50/50 transition-colors flex items-start justify-between gap-4 text-xs">
@@ -598,7 +594,9 @@ export default function CaseDetailPage() {
                         <div className="flex items-center gap-2">
                           <span className="font-mono text-[11px] font-bold text-slate-900">{log.action}</span>
                           <span className="text-slate-400">•</span>
-                          <span className="text-slate-700 font-medium">{actorName} ({roleName})</span>
+                          <span className="text-slate-700 font-medium">
+                            {actorName}{roleName && roleName !== actorName ? ` (${roleName})` : ""}
+                          </span>
                         </div>
                         {log.remarks && (
                           <div className="text-slate-600 text-xs">{log.remarks}</div>
@@ -615,6 +613,6 @@ export default function CaseDetailPage() {
           </Card>
         </TabsContent>
       </Tabs>
-    </div>
+    </FadeIn>
   );
 }

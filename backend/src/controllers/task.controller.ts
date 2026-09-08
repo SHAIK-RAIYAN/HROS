@@ -23,8 +23,12 @@ export const getPendingTasks = async (
       roleId,
       status: { $in: ["ACTIVE", "PENDING"] },
     })
-      .populate("offboardingCaseId")
+      .populate({
+        path: "offboardingCaseId",
+        select: "caseNumber employeeSnapshot lastWorkingDay status",
+      })
       .populate("roleId", "name code")
+      .populate("assignedUserId", "name")
       .sort({ sequence: 1, createdAt: -1 });
 
     res.status(200).json({

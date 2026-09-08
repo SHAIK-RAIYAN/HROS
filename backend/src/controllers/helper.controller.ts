@@ -21,7 +21,9 @@ export const getUsers = async (req: Request, res: Response): Promise<void> => {
 
 export const getEmployees = async (req: Request, res: Response): Promise<void> => {
   try {
-    const employees = await Employee.find().sort({ name: 1 });
+    const employees = await Employee.find()
+      .select("_id name employeeCode designation department email managerName joiningDate")
+      .sort({ name: 1 });
     res.status(200).json({ success: true, data: employees });
   } catch (error: any) {
     res.status(500).json({ error: "Failed to fetch employees", details: error.message });

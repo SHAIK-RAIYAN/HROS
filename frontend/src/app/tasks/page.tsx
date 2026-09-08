@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import dayjs from "dayjs";
+import { AnimatePresence, motion } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
 import api from "@/lib/api";
 import { toast } from "@/components/ui/toast";
@@ -18,11 +19,9 @@ import {
   Clock,
   RefreshCw,
   AlertCircle,
-  UserCheck,
-  ShieldAlert,
   Loader2,
-  Layers,
 } from "lucide-react";
+import FadeIn from "@/components/FadeIn";
 
 interface ChecklistItem {
   itemId: string;
@@ -84,20 +83,26 @@ export default function DepartmentTasksPage() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [exitingTaskId, setExitingTaskId] = useState<string | null>(null);
 
-  const fetchTasks = async () => {
+  const fetchTasks = async (preserveSelection = true) => {
     setIsLoading(true);
     setErrorMessage(null);
     try {
       const response = await api.get("/tasks");
       if (response.data.success && Array.isArray(response.data.data)) {
-        setTasks(response.data.data);
-        if (response.data.data.length > 0) {
-          const currentActive = response.data.data.find((t: TaskStage) => t._id === selectedTaskId);
-          if (!currentActive) {
-            setSelectedTaskId(response.data.data[0]._id);
-            initializeTaskForm(response.data.data[0]);
+        const fetchedTasks: TaskStage[] = response.data.data;
+        setTasks(fetchedTasks);
+        if (fetchedTasks.length > 0) {
+          if (preserveSelection && selectedTaskId) {
+            const currentActive = fetchedTasks.find((t) => t._id === selectedTaskId);
+            if (currentActive) {
+              initializeTaskForm(currentActive);
+              return;
+            }
           }
+          setSelectedTaskId(fetchedTasks[0]._id);
+          initializeTaskForm(fetchedTasks[0]);
         } else {
           setSelectedTaskId(null);
         }
@@ -121,8 +126,21 @@ export default function DepartmentTasksPage() {
   };
 
   useEffect(() => {
-    fetchTasks();
+    fetchTasks(false);
   }, [currentUser?.id, currentUser?.roleId]);
+
+  const formatStageName = (nameOrCode?: string, roleName?: string) => {
+    if (roleName) return `${roleName} Clearance`;
+    if (!nameOrCode) return "Clearance Stage";
+    const map: Record<string, string> = {
+      ADMIN_SYSTEMS: "Admin & Systems Clearance",
+      PROJECT_MANAGER: "Reporting Manager Clearance",
+      ACCOUNTS: "Accounts Clearance",
+      PERSONNEL: "Personnel Clearance",
+      HR: "HR Final Approval",
+    };
+    return map[nameOrCode] || nameOrCode;
+  };
 
   const selectedTask = tasks.find((t) => t._id === selectedTaskId) || null;
 
@@ -156,6 +174,8 @@ export default function DepartmentTasksPage() {
     }
 
     setIsSubmitting(true);
+    const targetTaskId = selectedTask._id;
+
     try {
       const updatedChecklist = selectedTask.checklist.map((item) => ({
         itemId: item.itemId,
@@ -181,16 +201,20 @@ export default function DepartmentTasksPage() {
         accessRevocation,
       };
 
-      const response = await api.post(`/tasks/${selectedTask._id}/complete`, payload);
+      const response = await api.post(`/tasks/${targetTaskId}/complete`, payload);
 
       if (response.data.success) {
+        setExitingTaskId(targetTaskId);
         toast.add({
           title: status === "APPROVED" ? "Clearance Approved" : "Clearance Rejected",
           description: `Stage '${selectedTask.stageName}' marked as ${status}.`,
           type: "success",
         });
 
-        await fetchTasks();
+        setTimeout(async () => {
+          setExitingTaskId(null);
+          await fetchTasks(false);
+        }, 300);
       }
     } catch (err: any) {
       const msg =
@@ -208,14 +232,14 @@ export default function DepartmentTasksPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto">
+    <FadeIn className="space-y-6 max-w-6xl mx-auto">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-2xl font-bold tracking-tight text-slate-900">
               Department Clearance Workspace
             </h1>
-            <Badge variant="outline" className="text-xs font-semibold">
+            <Badge variant="outline" className="text-xs font-semibold border-slate-200 bg-slate-100 text-slate-700">
               Role: {currentUser?.roleName || "Unassigned"}
             </Badge>
           </div>
@@ -227,9 +251,9 @@ export default function DepartmentTasksPage() {
         <Button
           variant="outline"
           size="sm"
-          onClick={fetchTasks}
+          onClick={() => fetchTasks(true)}
           disabled={isLoading}
-          className="text-xs h-9"
+          className="text-xs h-9 border-slate-200 text-slate-700 hover:bg-slate-50"
         >
           <RefreshCw className={`h-3.5 w-3.5 mr-1.5 ${isLoading ? "animate-spin" : ""}`} />
           Refresh Tasks
@@ -245,7 +269,7 @@ export default function DepartmentTasksPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
         <div className="md:col-span-5 space-y-3">
-          <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-slate-600 px-1">
+          <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-slate-500 px-1">
             <span>Assigned Clearances ({tasks.length})</span>
             <span>Status</span>
           </div>
@@ -258,257 +282,279 @@ export default function DepartmentTasksPage() {
           ) : tasks.length === 0 ? (
             <div className="p-8 text-center rounded-lg border border-dashed border-slate-200 bg-white space-y-2">
               <CheckCircle2 className="h-7 w-7 text-slate-400 mx-auto" />
-              <div className="text-xs font-semibold text-slate-800">No Pending Tasks</div>
+              <div className="text-xs font-semibold text-slate-800">No active offboarding cases found.</div>
               <div className="text-[11px] text-slate-500">
                 All clearance tasks for {currentUser?.roleName || "your role"} are currently up to date.
               </div>
             </div>
           ) : (
             <div className="space-y-2">
-              {tasks.map((task) => {
-                const empName =
-                  task.offboardingCaseId?.employeeSnapshot?.name || "Employee";
-                const empCode =
-                  task.offboardingCaseId?.employeeSnapshot?.employeeCode || "—";
-                const caseNum = task.offboardingCaseId?.caseNumber || "—";
-                const isSelected = task._id === selectedTaskId;
-                const isActive = task.status === "ACTIVE";
+              <AnimatePresence mode="popLayout">
+                {tasks.map((task) => {
+                  const empName =
+                    task.offboardingCaseId?.employeeSnapshot?.name || "Employee";
+                  const empCode =
+                    task.offboardingCaseId?.employeeSnapshot?.employeeCode || "—";
+                  const caseNum = task.offboardingCaseId?.caseNumber || "—";
+                  const isSelected = task._id === selectedTaskId;
+                  const isActive = task.status === "ACTIVE";
+                  const isExiting = task._id === exitingTaskId;
 
-                return (
-                  <div
-                    key={task._id}
-                    onClick={() => handleSelectTask(task)}
-                    className={`p-3.5 rounded-lg border cursor-pointer transition-all ${
-                      isSelected
-                        ? "border-slate-900 bg-slate-900 text-white shadow-sm"
-                        : "border-slate-200 bg-white hover:border-slate-300 text-slate-900"
-                    }`}
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="space-y-1 min-w-0">
-                        <div className="flex items-center gap-1.5">
-                          <span className={`text-xs font-bold truncate ${isSelected ? "text-white" : "text-slate-900"}`}>
-                            {empName}
-                          </span>
-                          <span className={`text-[10px] font-mono ${isSelected ? "text-slate-300" : "text-slate-500"}`}>
-                            ({empCode})
-                          </span>
+                  return (
+                    <motion.div
+                      key={task._id}
+                      layout
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: isExiting ? 0 : 1, y: isExiting ? -10 : 0, scale: isExiting ? 0.96 : 1 }}
+                      exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
+                      transition={{ duration: 0.25, ease: "easeOut" }}
+                      onClick={() => handleSelectTask(task)}
+                      className={`p-3.5 rounded-lg border cursor-pointer transition-colors ${
+                        isSelected
+                          ? "border-slate-900 bg-slate-900 text-white shadow-none"
+                          : "border-slate-200 bg-white hover:border-slate-300 text-slate-900"
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="space-y-1 min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <span className={`text-xs font-bold truncate ${isSelected ? "text-white" : "text-slate-900"}`}>
+                              {empName}
+                            </span>
+                            <span className={`text-[10px] font-mono ${isSelected ? "text-slate-300" : "text-slate-500"}`}>
+                              ({empCode})
+                            </span>
+                          </div>
+                          <div className={`text-[11px] ${isSelected ? "text-slate-300" : "text-slate-500"}`}>
+                            {formatStageName(task.stageName || task.stageCode, task.roleId?.name)} • Seq {task.sequence}
+                          </div>
+                          <div className={`text-[10px] font-mono ${isSelected ? "text-slate-400" : "text-slate-500"}`}>
+                            Case: {caseNum} • LWD: {dayjs(task.offboardingCaseId?.lastWorkingDay).format("MMM DD, YYYY")}
+                          </div>
                         </div>
-                        <div className={`text-[11px] ${isSelected ? "text-slate-300" : "text-slate-600"}`}>
-                          {task.stageName} • Seq {task.sequence}
-                        </div>
-                        <div className={`text-[10px] font-mono ${isSelected ? "text-slate-400" : "text-slate-400"}`}>
-                          Case: {caseNum} • LWD: {dayjs(task.offboardingCaseId?.lastWorkingDay).format("MMM DD, YYYY")}
-                        </div>
+
+                        <span
+                          className={`inline-flex items-center gap-1 rounded px-2 py-0.5 text-[10px] font-semibold border ${
+                            isActive
+                              ? "bg-amber-100 text-amber-800 border-amber-200"
+                              : "bg-slate-100 text-slate-700 border-slate-200"
+                          }`}
+                        >
+                          {isActive ? "ACTIVE" : "PENDING"}
+                        </span>
                       </div>
-
-                      <Badge
-                        variant={isActive ? "default" : "outline"}
-                        className={`text-[10px] font-semibold shrink-0 ${
-                          isSelected && isActive
-                            ? "bg-white text-slate-900"
-                            : isActive
-                            ? "bg-blue-600 text-white"
-                            : "border-slate-300 text-slate-500"
-                        }`}
-                      >
-                        {isActive ? "ACTIVE" : "PENDING"}
-                      </Badge>
-                    </div>
-                  </div>
-                );
-              })}
+                    </motion.div>
+                  );
+                })}
+              </AnimatePresence>
             </div>
           )}
         </div>
 
         <div className="md:col-span-7">
-          {selectedTask ? (
-            <Card className="border-slate-200 shadow-none">
-              <CardHeader className="py-4 px-5 border-b border-slate-100 bg-slate-50/50">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <CardTitle className="text-base font-bold text-slate-900">
-                        {selectedTask.stageName}
-                      </CardTitle>
-                      <Badge variant="outline" className="text-[10px] font-mono">
-                        Seq {selectedTask.sequence}
-                      </Badge>
-                      <Badge
-                        variant={selectedTask.status === "ACTIVE" ? "default" : "outline"}
-                        className="text-[10px]"
-                      >
-                        {selectedTask.status}
-                      </Badge>
+          <AnimatePresence mode="wait">
+            {selectedTask ? (
+              <motion.div
+                key={selectedTask._id}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.2, ease: "easeOut" }}
+              >
+                <Card className="border-slate-200 bg-white shadow-none">
+                  <CardHeader className="py-4 px-5 border-b border-slate-100 bg-slate-50/50">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <CardTitle className="text-base font-bold text-slate-900">
+                            {formatStageName(selectedTask.stageName || selectedTask.stageCode, selectedTask.roleId?.name)}
+                          </CardTitle>
+                          <Badge variant="outline" className="text-[10px] font-mono border-slate-200 text-slate-700">
+                            Seq {selectedTask.sequence}
+                          </Badge>
+                          <span
+                            className={`inline-flex items-center gap-1 rounded px-2 py-0.5 text-[10px] font-semibold border ${
+                              selectedTask.status === "ACTIVE"
+                                ? "bg-amber-100 text-amber-800 border-amber-200"
+                                : selectedTask.status === "APPROVED"
+                                ? "bg-emerald-100 text-emerald-800 border-emerald-200"
+                                : selectedTask.status === "REJECTED"
+                                ? "bg-rose-100 text-rose-800 border-rose-200"
+                                : "bg-slate-100 text-slate-700 border-slate-200"
+                            }`}
+                          >
+                            {selectedTask.status}
+                          </span>
+                        </div>
+                        <CardDescription className="text-xs text-slate-500">
+                          Target Employee:{" "}
+                          <span className="font-semibold text-slate-900">
+                            {selectedTask.offboardingCaseId?.employeeSnapshot?.name}
+                          </span>{" "}
+                          ({selectedTask.offboardingCaseId?.employeeSnapshot?.employeeCode}) • Case{" "}
+                          <span className="font-mono">{selectedTask.offboardingCaseId?.caseNumber}</span>
+                        </CardDescription>
+                      </div>
                     </div>
-                    <CardDescription className="text-xs text-slate-600">
-                      Target Employee:{" "}
-                      <span className="font-semibold text-slate-900">
-                        {selectedTask.offboardingCaseId?.employeeSnapshot?.name}
-                      </span>{" "}
-                      ({selectedTask.offboardingCaseId?.employeeSnapshot?.employeeCode}) • Case{" "}
-                      <span className="font-mono">{selectedTask.offboardingCaseId?.caseNumber}</span>
-                    </CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
+                  </CardHeader>
 
-              <CardContent className="p-5 space-y-5">
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-xs font-bold uppercase tracking-wider text-slate-700">
-                      Clearance Checklist Items
-                    </Label>
-                    <span className="text-[11px] text-slate-500">
-                      {selectedTask.checklist.filter((i) => checklistState[i.itemId]).length} of{" "}
-                      {selectedTask.checklist.length} completed
-                    </span>
-                  </div>
+                  <CardContent className="p-5 space-y-5">
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                          Clearance Checklist Items
+                        </Label>
+                        <span className="text-[11px] text-slate-500">
+                          {selectedTask.checklist.filter((i) => checklistState[i.itemId]).length} of{" "}
+                          {selectedTask.checklist.length} completed
+                        </span>
+                      </div>
 
-                  <div className="space-y-2 border border-slate-100 rounded-lg p-2.5 bg-slate-50/40">
-                    {selectedTask.checklist.map((item) => {
-                      const isChecked = Boolean(checklistState[item.itemId]);
-                      const isDisabled = selectedTask.status !== "ACTIVE" || isSubmitting;
+                      <div className="space-y-2 border border-slate-100 rounded-lg p-2.5 bg-slate-50/40">
+                        {selectedTask.checklist.map((item) => {
+                          const isChecked = Boolean(checklistState[item.itemId]);
+                          const isDisabled = selectedTask.status !== "ACTIVE" || isSubmitting;
 
-                      return (
-                        <div
-                          key={item.itemId}
-                          onClick={() => {
-                            if (!isDisabled) {
-                              handleChecklistToggle(item.itemId, !isChecked);
-                            }
-                          }}
-                          className={`flex items-start gap-3 p-2.5 rounded-md border transition-all ${
-                            isDisabled ? "cursor-default" : "cursor-pointer"
-                          } ${
-                            isChecked
-                              ? "border-emerald-200 bg-emerald-50/60"
-                              : "border-slate-200 bg-white hover:border-slate-300"
-                          }`}
-                        >
-                          <Checkbox
-                            id={item.itemId}
-                            checked={isChecked}
-                            onCheckedChange={(checked) =>
-                              handleChecklistToggle(item.itemId, Boolean(checked))
-                            }
-                            disabled={isDisabled}
-                            className="mt-0.5"
-                          />
-                          <div className="space-y-0.5 min-w-0">
-                            <label
-                              htmlFor={item.itemId}
-                              className={`text-xs font-medium cursor-pointer ${
-                                isChecked ? "text-emerald-950 font-semibold" : "text-slate-800"
+                          return (
+                            <div
+                              key={item.itemId}
+                              onClick={() => {
+                                if (!isDisabled) {
+                                  handleChecklistToggle(item.itemId, !isChecked);
+                                }
+                              }}
+                              className={`flex items-start gap-3 p-2.5 rounded-md border transition-all ${
+                                isDisabled ? "cursor-default" : "cursor-pointer"
+                              } ${
+                                isChecked
+                                  ? "border-emerald-200 bg-emerald-50/60"
+                                  : "border-slate-200 bg-white hover:border-slate-300"
                               }`}
                             >
-                              {item.label}
-                            </label>
-                            {item.required && (
-                              <span className="text-[10px] text-rose-600 block">
-                                Mandatory clearance item
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {selectedTask.accessRevocation && selectedTask.accessRevocation.length > 0 && (
-                  <div className="space-y-2 pt-2 border-t border-slate-100">
-                    <Label className="text-xs font-bold uppercase tracking-wider text-slate-700">
-                      Access Revocation Action List
-                    </Label>
-                    <div className="space-y-1.5">
-                      {selectedTask.accessRevocation.map((acc, idx) => (
-                        <div
-                          key={idx}
-                          className="flex items-center justify-between p-2 rounded border border-slate-200 bg-slate-50 text-xs"
-                        >
-                          <span className="font-semibold text-slate-800">
-                            {acc.system}: {acc.accessIdentifier}
-                          </span>
-                          <div className="flex items-center gap-2">
-                            <Badge variant="outline" className="text-[10px] bg-white">
-                              {acc.action}
-                            </Badge>
-                            <span className="text-[11px] font-mono text-slate-600">{acc.status}</span>
-                          </div>
-                        </div>
-                      ))}
+                              <Checkbox
+                                id={item.itemId}
+                                checked={isChecked}
+                                onCheckedChange={(checked) =>
+                                  handleChecklistToggle(item.itemId, Boolean(checked))
+                                }
+                                disabled={isDisabled}
+                                className="mt-0.5 border-slate-300"
+                              />
+                              <div className="space-y-0.5 min-w-0">
+                                <label
+                                  htmlFor={item.itemId}
+                                  className={`text-xs font-medium cursor-pointer ${
+                                    isChecked ? "text-emerald-950 font-semibold" : "text-slate-800"
+                                  }`}
+                                >
+                                  {item.label}
+                                </label>
+                                {item.required && (
+                                  <span className="text-[10px] text-rose-800 block">
+                                    Mandatory clearance item
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
-                  </div>
-                )}
 
-                <div className="space-y-1.5 pt-2 border-t border-slate-100">
-                  <Label htmlFor="remarks" className="text-xs font-bold uppercase tracking-wider text-slate-700">
-                    Remarks & Sign-off Notes
-                  </Label>
-                  <Textarea
-                    id="remarks"
-                    rows={3}
-                    placeholder="Provide stage clearance remarks, verification notes, or reason if rejecting..."
-                    value={remarks}
-                    onChange={(e) => setRemarks(e.target.value)}
-                    disabled={selectedTask.status !== "ACTIVE" || isSubmitting}
-                    className="text-xs resize-none"
-                  />
+                    {selectedTask.accessRevocation && selectedTask.accessRevocation.length > 0 && (
+                      <div className="space-y-2 pt-2 border-t border-slate-100">
+                        <Label className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                          Access Revocation Action List
+                        </Label>
+                        <div className="space-y-1.5">
+                          {selectedTask.accessRevocation.map((acc, idx) => (
+                            <div
+                              key={idx}
+                              className="flex items-center justify-between p-2 rounded border border-slate-200 bg-slate-50 text-xs"
+                            >
+                              <span className="font-semibold text-slate-800">
+                                {acc.system}: {acc.accessIdentifier}
+                              </span>
+                              <div className="flex items-center gap-2">
+                                <Badge variant="outline" className="text-[10px] bg-white border-slate-200 text-slate-700">
+                                  {acc.action}
+                                </Badge>
+                                <span className="text-[11px] font-mono text-slate-500">{acc.status}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="space-y-1.5 pt-2 border-t border-slate-100">
+                      <Label htmlFor="remarks" className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                        Remarks & Sign-off Notes
+                      </Label>
+                      <Textarea
+                        id="remarks"
+                        rows={3}
+                        placeholder="Provide stage clearance remarks, verification notes, or reason if rejecting..."
+                        value={remarks}
+                        onChange={(e) => setRemarks(e.target.value)}
+                        disabled={selectedTask.status !== "ACTIVE" || isSubmitting}
+                        className="text-xs resize-none border-slate-200 bg-white text-slate-900"
+                      />
+                    </div>
+
+                    {selectedTask.status === "ACTIVE" ? (
+                      <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => handleCompleteTask("REJECTED")}
+                          disabled={isSubmitting}
+                          className="text-xs h-9 bg-rose-600 text-white hover:bg-rose-700"
+                        >
+                          <XCircle className="h-3.5 w-3.5 mr-1.5" />
+                          Reject Clearance
+                        </Button>
+                        <Button
+                          type="button"
+                          size="sm"
+                          onClick={() => handleCompleteTask("APPROVED")}
+                          disabled={isSubmitting}
+                          className="text-xs h-9 bg-slate-900 text-white hover:bg-slate-800"
+                        >
+                          {isSubmitting ? (
+                            <>
+                              <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
+                              Submitting...
+                            </>
+                          ) : (
+                            <>
+                              <CheckCircle2 className="h-3.5 w-3.5 mr-1.5 text-emerald-400" />
+                              Approve Clearance
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="p-3 rounded bg-slate-50 border border-slate-200 text-xs text-slate-600 text-center">
+                        This task has status <strong>{selectedTask.status}</strong> and cannot be modified.
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ) : (
+              <div className="h-full min-h-[300px] flex flex-col items-center justify-center p-8 text-center rounded-lg border border-dashed border-slate-200 bg-white">
+                <FileText className="h-8 w-8 text-slate-300 mb-2" />
+                <div className="text-xs font-semibold text-slate-700">No Stage Selected</div>
+                <div className="text-[11px] text-slate-500 max-w-xs mt-1">
+                  Select a clearance task from the left list to review checklists and submit approval sign-offs.
                 </div>
-
-                {selectedTask.status === "ACTIVE" ? (
-                  <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => handleCompleteTask("REJECTED")}
-                      disabled={isSubmitting}
-                      className="text-xs h-9 bg-rose-600 text-white hover:bg-rose-700"
-                    >
-                      <XCircle className="h-3.5 w-3.5 mr-1.5" />
-                      Reject Clearance
-                    </Button>
-                    <Button
-                      type="button"
-                      size="sm"
-                      onClick={() => handleCompleteTask("APPROVED")}
-                      disabled={isSubmitting}
-                      className="text-xs h-9 bg-slate-900 text-white hover:bg-slate-800"
-                    >
-                      {isSubmitting ? (
-                        <>
-                          <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
-                          Submitting...
-                        </>
-                      ) : (
-                        <>
-                          <CheckCircle2 className="h-3.5 w-3.5 mr-1.5 text-emerald-400" />
-                          Approve Clearance
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="p-3 rounded bg-slate-50 border border-slate-200 text-xs text-slate-600 text-center">
-                    This task has status <strong>{selectedTask.status}</strong> and cannot be modified.
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="h-full min-h-[300px] flex flex-col items-center justify-center p-8 text-center rounded-lg border border-dashed border-slate-200 bg-white">
-              <FileText className="h-8 w-8 text-slate-300 mb-2" />
-              <div className="text-xs font-semibold text-slate-700">No Stage Selected</div>
-              <div className="text-[11px] text-slate-500 max-w-xs mt-1">
-                Select a clearance task from the left list to review checklists and submit approval sign-offs.
               </div>
-            </div>
-          )}
+            )}
+          </AnimatePresence>
         </div>
       </div>
-    </div>
+    </FadeIn>
   );
 }

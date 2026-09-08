@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent } from "@/components/ui/card";
 import { Plus, Search, RefreshCw, Eye, AlertCircle, FileCheck2, Clock, CheckCircle, XCircle } from "lucide-react";
+import FadeIn from "@/components/FadeIn";
 
 interface OffboardingCaseItem {
   _id: string;
@@ -87,7 +88,7 @@ export default function HrDashboardPage() {
         return (
           <span className="inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200">
             <Clock className="h-3 w-3" />
-            IN PROGRESS
+            IN_PROGRESS
           </span>
         );
       case "REJECTED":
@@ -100,7 +101,7 @@ export default function HrDashboardPage() {
       case "INITIATED":
       default:
         return (
-          <span className="inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs font-semibold bg-slate-100 text-slate-800 border border-slate-200">
+          <span className="inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200">
             INITIATED
           </span>
         );
@@ -131,7 +132,7 @@ export default function HrDashboardPage() {
   const rejectedCount = cases.filter((c) => c.status === "REJECTED").length;
 
   return (
-    <div className="space-y-6">
+    <FadeIn className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900">
@@ -147,7 +148,7 @@ export default function HrDashboardPage() {
             size="sm"
             onClick={fetchCases}
             disabled={isLoading}
-            className="text-xs h-9"
+            className="text-xs h-9 border-slate-200 text-slate-700 hover:bg-slate-50"
           >
             <RefreshCw className={`h-3.5 w-3.5 mr-1.5 ${isLoading ? "animate-spin" : ""}`} />
             Refresh
@@ -162,28 +163,28 @@ export default function HrDashboardPage() {
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <Card className="border-slate-200 shadow-none">
+        <Card className="border-slate-200 bg-white shadow-none">
           <CardContent className="p-4">
             <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Cases</div>
             <div className="text-2xl font-bold text-slate-900 mt-1">{totalCount}</div>
           </CardContent>
         </Card>
-        <Card className="border-slate-200 shadow-none">
+        <Card className="border-slate-200 bg-white shadow-none">
           <CardContent className="p-4">
-            <div className="text-xs font-semibold text-amber-700 uppercase tracking-wider">In Progress</div>
-            <div className="text-2xl font-bold text-amber-900 mt-1">{inProgressCount}</div>
+            <div className="text-xs font-semibold text-amber-800 uppercase tracking-wider">In Progress</div>
+            <div className="text-2xl font-bold text-amber-800 mt-1">{inProgressCount}</div>
           </CardContent>
         </Card>
-        <Card className="border-slate-200 shadow-none">
+        <Card className="border-slate-200 bg-white shadow-none">
           <CardContent className="p-4">
-            <div className="text-xs font-semibold text-emerald-700 uppercase tracking-wider">Completed</div>
-            <div className="text-2xl font-bold text-emerald-900 mt-1">{completedCount}</div>
+            <div className="text-xs font-semibold text-emerald-800 uppercase tracking-wider">Completed</div>
+            <div className="text-2xl font-bold text-emerald-800 mt-1">{completedCount}</div>
           </CardContent>
         </Card>
-        <Card className="border-slate-200 shadow-none">
+        <Card className="border-slate-200 bg-white shadow-none">
           <CardContent className="p-4">
-            <div className="text-xs font-semibold text-rose-700 uppercase tracking-wider">Rejected</div>
-            <div className="text-2xl font-bold text-rose-900 mt-1">{rejectedCount}</div>
+            <div className="text-xs font-semibold text-rose-800 uppercase tracking-wider">Rejected</div>
+            <div className="text-2xl font-bold text-rose-800 mt-1">{rejectedCount}</div>
           </CardContent>
         </Card>
       </div>
@@ -204,7 +205,7 @@ export default function HrDashboardPage() {
               placeholder="Search by case #, employee name or code..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 h-9 text-xs"
+              className="pl-9 h-9 text-xs border-slate-200"
             />
           </div>
 
@@ -215,10 +216,10 @@ export default function HrDashboardPage() {
                 variant={statusFilter === st ? "default" : "outline"}
                 size="sm"
                 onClick={() => setStatusFilter(st)}
-                className={`text-xs h-8 px-3 ${
+                className={`text-xs h-8 px-3 border-slate-200 ${
                   statusFilter === st
-                    ? "bg-slate-900 text-white"
-                    : "text-slate-600 hover:text-slate-900"
+                    ? "bg-slate-900 text-white hover:bg-slate-800"
+                    : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
                 }`}
               >
                 {st.replace("_", " ")}
@@ -230,7 +231,7 @@ export default function HrDashboardPage() {
         <div className="rounded-lg border border-slate-200 bg-white overflow-hidden shadow-none">
           <Table>
             <TableHeader className="bg-slate-50">
-              <TableRow className="hover:bg-transparent">
+              <TableRow className="hover:bg-transparent border-slate-200">
                 <TableHead className="w-[120px] text-xs font-bold text-slate-700">Case ID</TableHead>
                 <TableHead className="text-xs font-bold text-slate-700">Employee</TableHead>
                 <TableHead className="text-xs font-bold text-slate-700">Resignation Date</TableHead>
@@ -252,7 +253,7 @@ export default function HrDashboardPage() {
                 <TableRow>
                   <TableCell colSpan={7} className="h-32 text-center text-xs text-slate-500">
                     <FileCheck2 className="h-6 w-6 mx-auto mb-2 text-slate-400" />
-                    No offboarding cases found matching criteria.
+                    No active offboarding cases found.
                   </TableCell>
                 </TableRow>
               ) : (
@@ -265,7 +266,7 @@ export default function HrDashboardPage() {
                     item.employeeSnapshot?.department || item.employeeId?.department || "";
 
                   return (
-                    <TableRow key={item._id} className="hover:bg-slate-50/80 transition-colors">
+                    <TableRow key={item._id} className="border-slate-200 hover:bg-slate-50/80 transition-colors">
                       <TableCell className="font-mono text-xs font-semibold text-slate-900">
                         {item.caseNumber}
                       </TableCell>
@@ -284,7 +285,7 @@ export default function HrDashboardPage() {
                         {dayjs(item.lastWorkingDay).format("MMM DD, YYYY")}
                       </TableCell>
                       <TableCell>
-                        <Badge variant="outline" className="text-[11px] font-mono font-medium">
+                        <Badge variant="outline" className="text-[11px] font-mono font-medium border-slate-200 text-slate-700">
                           Seq {item.currentSequence}
                         </Badge>
                       </TableCell>
@@ -293,7 +294,7 @@ export default function HrDashboardPage() {
                       </TableCell>
                       <TableCell className="text-right">
                         <Link href={`/hr/cases/${item._id}`}>
-                          <Button variant="ghost" size="sm" className="h-8 text-xs font-medium text-slate-700 hover:text-slate-900">
+                          <Button variant="ghost" size="sm" className="h-8 text-xs font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-100">
                             <Eye className="h-3.5 w-3.5 mr-1" />
                             View Case
                           </Button>
@@ -307,6 +308,6 @@ export default function HrDashboardPage() {
           </Table>
         </div>
       </div>
-    </div>
+    </FadeIn>
   );
 }

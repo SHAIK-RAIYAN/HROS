@@ -20,7 +20,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, User, Building, Briefcase, Calendar, AlertCircle, Loader2 } from "lucide-react";
+import { ArrowLeft, AlertCircle, Loader2 } from "lucide-react";
+import FadeIn from "@/components/FadeIn";
 
 interface EmployeeOption {
   _id: string;
@@ -137,7 +138,7 @@ export default function InitiateOffboardingPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto">
+    <FadeIn className="space-y-6 max-w-5xl mx-auto">
       <div className="flex items-center justify-between border-b border-slate-200 pb-4">
         <div className="space-y-1">
           <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
@@ -164,7 +165,7 @@ export default function InitiateOffboardingPage() {
       <form onSubmit={handleSubmit(onSubmit)}>
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
           <div className="md:col-span-7 space-y-6">
-            <Card className="border-slate-200 shadow-none">
+            <Card className="border-slate-200 bg-white shadow-none">
               <CardHeader className="py-4 px-5 border-b border-slate-100">
                 <CardTitle className="text-base font-semibold text-slate-900">
                   Offboarding Parameters
@@ -183,8 +184,12 @@ export default function InitiateOffboardingPage() {
                     onValueChange={handleEmployeeChange}
                     disabled={isLoadingEmployees}
                   >
-                    <SelectTrigger id="employeeId" className="w-full text-xs h-9">
-                      <SelectValue placeholder="Select an employee..." />
+                    <SelectTrigger id="employeeId" className="w-full text-xs h-9 border-slate-200 bg-white text-slate-900">
+                      <SelectValue placeholder="Select an employee...">
+                        {selectedEmployee
+                          ? `${selectedEmployee.name} (${selectedEmployee.employeeCode}) — ${selectedEmployee.designation}`
+                          : "Select an employee..."}
+                      </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                       {employees.map((emp) => (
@@ -207,7 +212,7 @@ export default function InitiateOffboardingPage() {
                     <Input
                       id="resignationDate"
                       type="date"
-                      className="h-9 text-xs"
+                      className="h-9 text-xs border-slate-200 bg-white text-slate-900"
                       {...register("resignationDate")}
                     />
                     {errors.resignationDate && (
@@ -222,7 +227,7 @@ export default function InitiateOffboardingPage() {
                     <Input
                       id="lastWorkingDay"
                       type="date"
-                      className="h-9 text-xs"
+                      className="h-9 text-xs border-slate-200 bg-white text-slate-900"
                       {...register("lastWorkingDay")}
                     />
                     {errors.lastWorkingDay && (
@@ -239,7 +244,7 @@ export default function InitiateOffboardingPage() {
                     id="reason"
                     rows={3}
                     placeholder="Enter resignation reason, internal notes, or remarks..."
-                    className="text-xs resize-none"
+                    className="text-xs resize-none border-slate-200 bg-white text-slate-900"
                     {...register("reason")}
                   />
                 </div>
@@ -248,7 +253,7 @@ export default function InitiateOffboardingPage() {
 
             <div className="flex items-center justify-end gap-3">
               <Link href="/hr/dashboard">
-                <Button type="button" variant="outline" size="sm" className="text-xs h-9">
+                <Button type="button" variant="outline" size="sm" className="text-xs h-9 border-slate-200 text-slate-700 hover:bg-slate-50">
                   Cancel
                 </Button>
               </Link>
@@ -301,16 +306,18 @@ export default function InitiateOffboardingPage() {
                       </div>
                       <div>
                         <span className="text-[11px] text-slate-500 block">Official Email</span>
-                        <span className="font-medium text-slate-800 truncate block">{selectedEmployee.email}</span>
+                        <span className="font-medium text-slate-800 truncate block">{selectedEmployee.email || "—"}</span>
                       </div>
                       <div>
                         <span className="text-[11px] text-slate-500 block">Reporting Manager</span>
-                        <span className="font-medium text-slate-800">{selectedEmployee.managerName || "N/A"}</span>
+                        <span className="font-medium text-slate-800">{selectedEmployee.managerName || "—"}</span>
                       </div>
                       <div className="col-span-2">
                         <span className="text-[11px] text-slate-500 block">Joining Date</span>
                         <span className="font-medium text-slate-800">
-                          {new Date(selectedEmployee.joiningDate).toISOString().split("T")[0]}
+                          {selectedEmployee.joiningDate && !isNaN(new Date(selectedEmployee.joiningDate).getTime())
+                            ? new Date(selectedEmployee.joiningDate).toISOString().split("T")[0]
+                            : "—"}
                         </span>
                       </div>
                     </div>
@@ -323,7 +330,7 @@ export default function InitiateOffboardingPage() {
               </CardContent>
             </Card>
 
-            <Card className="border-slate-200 shadow-none">
+            <Card className="border-slate-200 bg-white shadow-none">
               <CardHeader className="py-3 px-5 border-b border-slate-100">
                 <CardTitle className="text-xs font-bold uppercase tracking-wider text-slate-600">
                   Triggered Workflow Stages
@@ -347,6 +354,6 @@ export default function InitiateOffboardingPage() {
           </div>
         </div>
       </form>
-    </div>
+    </FadeIn>
   );
 }
