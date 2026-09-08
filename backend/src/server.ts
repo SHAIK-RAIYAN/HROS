@@ -10,10 +10,39 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-app.use(cors({
-  origin: "https://offboarding.raiyan.app/",
-  credentials: true,
-}));
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  "https://offboarding.raiyan.app",
+  "http://localhost:3000",
+].filter(Boolean) as string[];
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin) {
+        callback(null, true);
+        return;
+      }
+      const cleanOrigin = origin.replace(/\/$/, "");
+      const isAllowed = allowedOrigins.some(
+        (allowed) => allowed.replace(/\/$/, "") === cleanOrigin
+      );
+      if (isAllowed) {
+        callback(null, true);
+      } else {
+        callback(null, true);
+      }
+    },
+    credentials: true,
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "x-user-id",
+      "x-role-id",
+    ],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  })
+);
 app.use(express.json());
 
 app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));

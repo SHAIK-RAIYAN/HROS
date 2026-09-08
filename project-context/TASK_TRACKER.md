@@ -18,4 +18,5 @@
 - [x] FE-007 Raw MongoDB ObjectIds Elimination & Complete Entity Population (Verified)
 - [x] BE-009 Seed robust enterprise dataset with 5 mock personas and 10 employees (Verified)
 - [x] BE-010 State Machine Task Visibility Patch & Personalized PDF Generator (Verified)
+- [x] DEPLOY-001 Production Environment Configuration, Dynamic Axios Client & CORS Hardening (Verified)
 

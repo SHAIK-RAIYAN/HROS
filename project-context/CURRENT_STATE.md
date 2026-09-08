@@ -52,9 +52,14 @@ Frontend UI elevated to Impeccable B2B Enterprise standard with motion.dev and d
     - Resignation Letter: Personalized greeting `Dear ${employeeName},` with explicit resignation and last working dates.
     - NOC Certificate: Sub-header `CLEARANCE CERTIFICATE FOR ${employeeName.toUpperCase()}`.
     - Relieving Letter: Sub-header `RELIEVING LETTER FOR ${employeeName.toUpperCase()}` with name, designation, and tenure end date.
+- Production Deployment Configuration & CORS Hardening (DEPLOY-001):
+  - Created `/backend/.env.example` defining `PORT`, `MONGO_URI`, and `FRONTEND_URL=https://offboarding.raiyan.app`.
+  - Hardened CORS in `/backend/src/server.ts` to dynamically allow requests from `process.env.FRONTEND_URL`, `https://offboarding.raiyan.app`, and `http://localhost:3000` with credentials and allowed headers (`Content-Type`, `Authorization`, `x-user-id`, `x-role-id`).
+  - Created `/frontend/.env.example` defining `NEXT_PUBLIC_API_URL=https://terra-bang-hack.onrender.com/api`.
+  - Wired `/frontend/src/lib/api.ts` to dynamically target `process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"`.
 - Verification:
-  - `npm run build` cleanly passed in both `/backend` and `/frontend`.
-  - `npm run seed` verified with 5 roles, 5 users, 10 employees, 1 workflow template.
+  - `npm run build` cleanly passed in `/backend` (`tsc`: 0 errors).
+  - `npm run build` cleanly passed in `/frontend` (`next build`: 0 errors).
   - Zero comments rule verified across all source files.
 
 

@@ -1,6 +1,6 @@
 
 ```
-TerraBangHack
+HROS
 ├─ backend
 │  ├─ package-lock.json
 │  ├─ package.json
@@ -33,19 +33,28 @@ TerraBangHack
 │  ├─ tsconfig.json
 │  └─ uploads
 │     └─ documents
+│        ├─ noc-CASE-TEST.pdf
 │        ├─ noc-OFF-212657.pdf
+│        ├─ noc-OFF-323498.pdf
 │        ├─ noc-OFF-651273.pdf
+│        ├─ noc-OFF-711270.pdf
 │        ├─ noc-OFF-924875.pdf
+│        ├─ relieving-CASE-TEST.pdf
+│        ├─ relieving-OFF-140616.pdf
 │        ├─ relieving-OFF-212657.pdf
+│        ├─ relieving-OFF-323498.pdf
 │        ├─ relieving-OFF-651273.pdf
+│        ├─ relieving-OFF-711270.pdf
 │        ├─ relieving-OFF-924875.pdf
+│        ├─ resignation-CASE-TEST.pdf
+│        ├─ resignation-OFF-140616.pdf
 │        ├─ resignation-OFF-212657.pdf
+│        ├─ resignation-OFF-323498.pdf
 │        ├─ resignation-OFF-651273.pdf
+│        ├─ resignation-OFF-711270.pdf
 │        └─ resignation-OFF-924875.pdf
 ├─ employee-offboarding-mongodb-schema.md
 ├─ frontend
-│  ├─ AGENTS.md
-│  ├─ CLAUDE.md
 │  ├─ components.json
 │  ├─ eslint.config.mjs
 │  ├─ next-env.d.ts
@@ -101,9 +110,10 @@ TerraBangHack
 │  │     └─ utils.ts
 │  └─ tsconfig.json
 ├─ Problem-statement.md
-└─ project-context
-   ├─ API_CONTRACT.md
-   ├─ CURRENT_STATE.md
-   └─ TASK_TRACKER.md
+├─ project-context
+│  ├─ API_CONTRACT.md
+│  ├─ CURRENT_STATE.md
+│  └─ TASK_TRACKER.md
+└─ README.md
 
 ```
