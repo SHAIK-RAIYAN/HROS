@@ -39,11 +39,14 @@ Frontend UI elevated to Impeccable B2B Enterprise standard with motion.dev and d
   - Seeded 10 realistic Employees across diverse departments (Engineering, Platform, Sales, Marketing, HR, Finance, IT Infrastructure, Customer Operations).
   - Seeded "Standard Employee Offboarding" `WorkflowTemplate` with sequential & parallel clearance stages.
   - Executed `npm run seed` successfully with clean disconnection.
-- State Machine Visibility Patch & Dynamic PDF Personalization (BE-010):
+- State Machine Visibility Patch, Dynamic PDF Personalization & Cascading Rejection (BE-010):
   - In `/backend/src/controllers/task.controller.ts`:
     - Replaced `getPendingTasks` with bulletproof in-memory state filtering (`validTasks = tasks.filter(task => task.offboardingCaseId && task.offboardingCaseId.status !== 'REJECTED' && task.offboardingCaseId.status !== 'CANCELLED')`), ensuring uncorrupted population structures.
+    - Implemented Cascading Rejection in `completeTask`: Upon stage rejection, all active and pending sibling/downstream stages are automatically set to `REJECTED` via `WorkflowStage.updateMany` with termination remarks.
+    - Upgraded `completeTask` validation to check parent `OffboardingCase` status upfront, preventing 400 errors during approval retries and final HR completion.
     - Passed employee designation to `generateOffboardingDocuments`.
   - In `/backend/src/services/pdf.service.ts`:
+    - Fixed font encoding compatibility in NOC PDF generation (standardized ASCII brackets `[X]` replacing non-WinAnsi `✓` glyphs).
     - Removed all "TO WHOM IT MAY CONCERN" / "TO WHOMSOEVER IT MAY CONCERN" salutations.
     - Formatted dates with `dayjs(date).format('MMMM D, YYYY')`.
     - Resignation Letter: Personalized greeting `Dear ${employeeName},` with explicit resignation and last working dates.

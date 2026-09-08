@@ -75,9 +75,29 @@ export const completeTask = async (
       return;
     }
 
-    if (stage.status !== "ACTIVE") {
+    const offboardingCase = await OffboardingCase.findById(stage.offboardingCaseId);
+    if (!offboardingCase) {
+      res.status(404).json({ error: "Associated offboarding case not found" });
+      return;
+    }
+
+    if (offboardingCase.status === "REJECTED" || offboardingCase.status === "CANCELLED") {
       res.status(400).json({
-        error: `Cannot complete stage with status '${stage.status}'. Stage must be 'ACTIVE'.`,
+        error: `Cannot complete task for a ${offboardingCase.status.toLowerCase()} offboarding case.`,
+      });
+      return;
+    }
+
+    if (stage.status === "REJECTED") {
+      res.status(400).json({
+        error: "Cannot complete a stage that has already been rejected.",
+      });
+      return;
+    }
+
+    if (stage.status === "PENDING" && stage.sequence > offboardingCase.currentSequence) {
+      res.status(400).json({
+        error: "Cannot complete stage with status 'PENDING'. Preceding sequence must be completed first.",
       });
       return;
     }
@@ -144,15 +164,22 @@ export const completeTask = async (
       timestamp: new Date(),
     });
 
-    const offboardingCase = await OffboardingCase.findById(stage.offboardingCaseId);
-    if (!offboardingCase) {
-      res.status(404).json({ error: "Associated offboarding case not found" });
-      return;
-    }
-
     if (status === "REJECTED") {
       offboardingCase.status = "REJECTED";
       await offboardingCase.save();
+
+      await WorkflowStage.updateMany(
+        {
+          offboardingCaseId: stage.offboardingCaseId,
+          status: { $in: ["ACTIVE", "PENDING"] },
+        },
+        {
+          $set: {
+            status: "REJECTED",
+            remarks: "Workflow automatically terminated due to rejection in a parallel or preceding stage.",
+          },
+        }
+      );
 
       await WorkflowAuditLog.create({
         offboardingCaseId: offboardingCase._id,
