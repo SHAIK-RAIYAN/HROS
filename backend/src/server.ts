@@ -1,6 +1,6 @@
-import express, { Request, Response } from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import express, { Request, Response } from "express";
 import path from "path";
 import { connectDB } from "./config/db";
 import routes from "./routes";
@@ -11,7 +11,7 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 app.use(cors({
-  origin: "",
+  origin: "https://offboarding.raiyan.app/",
   credentials: true,
 }));
 app.use(express.json());
